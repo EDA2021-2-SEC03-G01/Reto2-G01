@@ -33,6 +33,7 @@ from DISClib.Algorithms.Sorting import shellsort as sa
 from DISClib.Algorithms.Sorting import insertionsort as ins
 from DISClib.Algorithms.Sorting import mergesort as ms
 from DISClib.Algorithms.Sorting import quicksort as qs
+from DISClib.DataStructures import mapentry as me
 from datetime import date
 from statistics import mode 
 assert cf
@@ -57,7 +58,7 @@ def newCatalog(tipo_artistas, tipo_obras):
 
     catalog["artists"]=lt.newList(datastructure = tipo_artistas, cmpfunction = compareArtists)
     catalog["artworks"]=lt.newList(datastructure = tipo_obras, cmpfunction = compareArtworks)
-    catalog["Medios"]=mp.newMap(34500,
+    catalog["Medios"]=mp.newMap(120,
                                 maptype='CHAINING',
                                 loadfactor=4.0,
                                 )
@@ -73,9 +74,18 @@ def addArtworks(catalog, artwork):
 
 
 def addMedium(catalog, artwork):
-    lista_obras=lt.newList()
-    mp.put(catalog["Medios"], artwork["Medium"], lista_obras)
-    lt.addLast(mp.get(catalog["Medios"], artwork["Medium"]), artwork)
+    if mp.contains(catalog["Medios"], artwork["Medium"]):
+        medios = mp.get(catalog["Medios"], artwork["Medium"])
+        valor_medios = me.getValue(medios)
+        lt.addLast(valor_medios, artwork)
+        mp.put(catalog["Medios"], artwork["Medium"], valor_medios)
+    else:
+        lista_obras=lt.newList(datastructure="ARRAY_LIST")
+        lt.addLast(lista_obras, artwork)
+        mp.put(catalog["Medios"], artwork["Medium"], lista_obras)
+
+
+    
         
             
 
@@ -159,7 +169,7 @@ def compareCosto(obra1, obra2):
         return False
 
 # Funciones de ordenamiento
-
+#def sort
 #Encontrar los n primeros y ultimos de una lista
 def primeros_ultimos(lista, n):
     lista_def = lt.newList()
@@ -533,7 +543,9 @@ def req_6(catalog, ano_ini, ano_fin, Area_disp ):
 
 def lab_5(catalog, n, medio):
     lista_obras=lt.newList(datastructure="ARRAY_LIST")
-    lista_obras=mp.get(catalog["Medios"], medio)
+    a=mp.get(catalog["Medios"], medio)
+    print(a)
+    lista_obras = me.getValue(a)
     print(lista_obras)
     sa.sort(lista_obras, compareDateAcquired )
     lista_def = lt.newList()

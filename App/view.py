@@ -80,6 +80,7 @@ while True:
         print('Obras cargadas: ' + str(lt.size(catalog['artworks'])))
         print('Últimas tres obras:\n' + str(controller.getLastArtworks(catalog)))
         print("Medios cargados:" + str(mp.size(catalog["Medios"])))
+        print(catalog["Medios"])
         
         
 
