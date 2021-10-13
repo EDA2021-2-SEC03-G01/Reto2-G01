@@ -45,6 +45,7 @@ def printMenu():
     print("6- Transportar obras de un departamento")
     print("7- Proponer una nueva exposicion en el museo")
     print("8- Consultar las n obras más antiguas por un medio especifico")
+    print("9- Consultar cuantas obras tienen una nacionalidad especifica")
     print("0- Salir")
 
 def initCatalog(tipo_artistas, tipo_obras):
@@ -75,12 +76,14 @@ while True:
         print("Cargando información de los archivos ....")
         catalog = initCatalog(tipo_artistas, tipo_obras)
         loadData(catalog)
-        print('Artistas cargados: ' + str(lt.size(catalog['artists'])))
-        print('Últimos tres artistas:\n' + str(controller.getLastArtists(catalog)))
-        print('Obras cargadas: ' + str(lt.size(catalog['artworks'])))
-        print('Últimas tres obras:\n' + str(controller.getLastArtworks(catalog)))
-        print("Medios cargados:" + str(mp.size(catalog["Medios"])))
-        print(catalog["Medios"])
+        #print('Artistas cargados: ' + str(lt.size(catalog['artists'])))
+        #print('Últimos tres artistas:\n' + str(controller.getLastArtists(catalog)))
+        #print('Obras cargadas: ' + str(lt.size(catalog['artworks'])))
+        #print('Últimas tres obras:\n' + str(controller.getLastArtworks(catalog)))
+        #print("Medios cargados:" + str(mp.size(catalog["Medios"])))
+        #print(catalog["Medios"])
+        print("Nacionalidades cargadas: " + str(mp.size(catalog["Nacionalidades"])))
+        print(catalog["Nacionalidades"])
         
         
 
@@ -156,10 +159,17 @@ while True:
         print("El tiempo de respuesta para este requerimiento fue: " + str(tiempo_req))
 
     elif int(inputs[0]) == 8:
-        medio=input("Ingrese el medio de interés")
-        n=input("Ingrese el numero de obras que desea consultar")
+        medio=input("Ingrese el medio de interés: ")
+        n=input("Ingrese el numero de obras que desea consultar: ")
         lista_def=controller.lab_5(catalog, n, medio)
         print(lista_def)
+
+    elif int(inputs[0]) == 9:
+        nacionalidad=input("Ingrese la nacionalidad de interés: ")
+        n_obras=controller.lab_6(catalog, nacionalidad)
+        print(str(n_obras) + " obras tienen esta nacionalidad")
+
+
 
     else:
         sys.exit(0)

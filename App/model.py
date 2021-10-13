@@ -25,6 +25,7 @@
  """
 
 
+from DISClib.DataStructures.arraylist import iterator
 import config as cf
 import time
 from DISClib.ADT import list as lt
@@ -62,6 +63,10 @@ def newCatalog(tipo_artistas, tipo_obras):
                                 maptype='CHAINING',
                                 loadfactor=4.0,
                                 )
+    catalog["Nacionalidades"]=mp.newMap(120,
+                                maptype='CHAINING',
+                                loadfactor=4.0,
+                                )
 
     return catalog
 
@@ -83,6 +88,33 @@ def addMedium(catalog, artwork):
         lista_obras=lt.newList(datastructure="ARRAY_LIST")
         lt.addLast(lista_obras, artwork)
         mp.put(catalog["Medios"], artwork["Medium"], lista_obras)
+
+def artista_obra (catalog):
+    obras=catalog["artworks"]
+    artistas=catalog["artists"]
+    dic_artists={}
+    for artista in lt.iterator(artistas):
+        lista_obras=lt.newList(datastructure="ARRAY_LIST")
+        for obra in lt.iterator(obras):
+            if int(artista["ConstituentID"]) in eval(obra["ConstituentID"]):
+                lt.addLast(lista_obras, obra)
+        dic_artists[artista["ConstituentID"]]=lista_obras
+    return dic_artists
+
+def addNationality(catalog, artist):
+    dic_artists=artista_obra(catalog)
+    if mp.contains(catalog["Nacionalidades"], artist["Nationality"]):
+        lista_obras=dic_artists[artist["ConstituentID"]]
+        nacion = mp.get(catalog["Nacionalidades"], artist["Nationality"])
+        valor_nacion = me.getValue(nacion)
+        for obra in iterator(lista_obras):
+            lt.addLast(valor_nacion, obra)
+        mp.put(catalog["Nacionalidades"], artist["Nationality"], valor_nacion)
+    else:
+        lista_obras=dic_artists[artist["ConstituentID"]]
+        mp.put(catalog["Nacionalidades"], artist["Nationality"], lista_obras)
+
+                
 
 
     
@@ -554,4 +586,7 @@ def lab_5(catalog, n, medio):
         lt.addLast(lista_def, element)
     return lista_def
 
-
+def lab_6(catalog, nacionalidad):
+    nacion=mp.get(catalog["Nacionalidades"], nacionalidad)
+    lista_obras=me.getValue(nacion)
+    return lt.size(lista_obras)

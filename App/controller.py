@@ -42,6 +42,7 @@ def loadData(catalog):
     loadArtists(catalog)
     loadArtworks(catalog)
     loadMediums(catalog)
+    loadNationalities(catalog)
 
 def loadArtists(catalog):
     artistsfile = cf.data_dir + 'MoMA/Artists-utf8-small.csv'
@@ -61,6 +62,13 @@ def loadMediums(catalog):
     for artwork in input_file:
         model.addMedium(catalog, artwork)
     #model.sort
+
+def loadNationalities(catalog):
+    artistsfile = cf.data_dir + 'MoMA/Artists-utf8-small.csv'
+    input_file = csv.DictReader(open(artistsfile, encoding='utf-8'))
+    for artist in input_file:
+        model.addNationality(catalog, artist)
+
 # Funciones de ordenamiento
 
 # Funciones de consulta sobre el catálogo
@@ -101,3 +109,8 @@ def req_6(catalog, ano_ini, ano_fin, Area_disp):
 def lab_5(catalog, n, medio):
     lista_def=model.lab_5(catalog, n, medio)
     return lista_def
+
+def lab_6(catalog, nacionalidad):
+    n_obras=model.lab_6(catalog, nacionalidad)
+    return n_obras
+    
