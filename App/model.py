@@ -45,83 +45,73 @@ otra para las categorias de los mismos.
 """
 
 # Construccion de modelos
-def newCatalog(tipo_artistas, tipo_obras):
+def newCatalog():
     catalog={"artists":None,"artworks":None}
-    if tipo_artistas == 1:
-        tipo_artistas = "ARRAY_LIST"
-    else:
-        tipo_artistas = "LINKED_LIST"
 
-    if tipo_obras == 1:
-        tipo_obras = "ARRAY_LIST"
-    else:
-        tipo_obras = "LINKED_LIST"
-
-    catalog["artists"]=lt.newList(datastructure = tipo_artistas, cmpfunction = compareArtists)
-    catalog["artworks"]=lt.newList(datastructure = tipo_obras, cmpfunction = compareArtworks)
-    catalog["Medios"]=mp.newMap(120,
-                                maptype='CHAINING',
-                                loadfactor=4.0,
+    catalog["artists"]=mp.newMap(30446, 
+                                maptype='PROBING',
+                                loadfactor=0.5, 
                                 )
-    catalog["Nacionalidades"]=mp.newMap(120,
-                                maptype='CHAINING',
-                                loadfactor=4.0,
+    catalog["artworks"]=mp.newMap(276300,
+                                maptype='PROBING',
+                                loadfactor=0.5,
                                 )
+    catalog["Medios"]=mp.newMap(10597,
+                                maptype='CHAINING',
+                                loadfactor=2.0,
+                                )
+    catalog["Nacionalidades"]=mp.newMap(61,
+                                maptype='CHAINING',
+                                loadfactor=2.0,
+                                )
+    """catalog["Departamentos"]=mp.newMap(5,
+                                maptype='CHAINING',
+                                loadfactor=2.0,
+                                )"""
 
     return catalog
 
 # Funciones para agregar informacion al catalogo
 def addArtist(catalog, artist):
-    lt.addLast(catalog["artists"], artist)
+    if not mp.contains(catalog["artists"], artist["ConstituentID"]):
+        mp.put(catalog["artists"], artist["ConstituentID"], artist)
     
 def addArtworks(catalog, artwork):
-    lt.addLast(catalog["artworks"], artwork)
-
-
-def addMedium(catalog, artwork):
-    if mp.contains(catalog["Medios"], artwork["Medium"]):
-        medios = mp.get(catalog["Medios"], artwork["Medium"])
-        valor_medios = me.getValue(medios)
-        lt.addLast(valor_medios, artwork)
-        mp.put(catalog["Medios"], artwork["Medium"], valor_medios)
-    else:
-        lista_obras=lt.newList(datastructure="ARRAY_LIST")
-        lt.addLast(lista_obras, artwork)
-        mp.put(catalog["Medios"], artwork["Medium"], lista_obras)
-
-def artista_obra (catalog):
-    obras=catalog["artworks"]
-    artistas=catalog["artists"]
-    dic_artists={}
-    for artista in lt.iterator(artistas):
-        lista_obras=lt.newList(datastructure="ARRAY_LIST")
-        for obra in lt.iterator(obras):
-            if int(artista["ConstituentID"]) in eval(obra["ConstituentID"]):
-                lt.addLast(lista_obras, obra)
-        dic_artists[artista["ConstituentID"]]=lista_obras
-    return dic_artists
-
-def addNationality(catalog, artist):
-    dic_artists=artista_obra(catalog)
-    if mp.contains(catalog["Nacionalidades"], artist["Nationality"]):
-        lista_obras=dic_artists[artist["ConstituentID"]]
-        nacion = mp.get(catalog["Nacionalidades"], artist["Nationality"])
-        valor_nacion = me.getValue(nacion)
-        for obra in iterator(lista_obras):
-            lt.addLast(valor_nacion, obra)
-        mp.put(catalog["Nacionalidades"], artist["Nationality"], valor_nacion)
-    else:
-        lista_obras=dic_artists[artist["ConstituentID"]]
-        mp.put(catalog["Nacionalidades"], artist["Nationality"], lista_obras)
-
-                
-
-
-    
-        
-            
-
-    
+    if not mp.contains(catalog["artworks"], artwork["ObjectID"]):
+        mp.put(catalog["artworks"], artwork["ObjectID"], artwork)
+        listaIDs = artwork["ConstituentID"]
+        listaIDs = listaIDs.replace("[", "").replace("]", "").split(", ")
+        #Nacionalidades
+        for id in listaIDs:
+            if mp.contains(catalog["artists"], id):
+                artista = mp.get(catalog["artists"], id)["value"]
+                nacionalidad = artista["Nationality"]
+                if mp.contains(catalog["Nacionalidades"], nacionalidad):
+                    lista_obras = mp.get(catalog["Nacionalidades"], nacionalidad)["value"]
+                    lt.addLast(lista_obras, artwork)
+                    mp.put(catalog["Nacionalidades"], nacionalidad, lista_obras)
+                else:
+                    lista_obras = lt.newList(datastructure="ARRAY_LIST", cmpfunction=compareDate)
+                    lt.addLast(lista_obras, artwork)
+                    mp.put(catalog["Nacionalidades"], nacionalidad, lista_obras)
+        #Medios
+        if mp.contains(catalog["Medios"], artwork["Medium"]):
+            lista_obras = mp.get(catalog["Medios"], artwork["Medium"])["value"]
+            lt.addLast(lista_obras, artwork)
+            mp.put(catalog["Medios"], artwork["Medium"], lista_obras)
+        else:
+            lista_obras=lt.newList(datastructure="ARRAY_LIST", cmpfunction=compareDateAcquired)
+            lt.addLast(lista_obras, artwork)
+            mp.put(catalog["Medios"], artwork["Medium"], lista_obras)
+        #Departamentos
+        """if mp.contains(catalog["Departamentos"], artwork["Department"]):
+            lista_obras = mp.get(catalog["Departamentos"], artwork["Department"])["value"]
+            lt.addLast(lista_obras, artwork)
+            mp.put(catalog["Departamentos"], artwork["Department"], lista_obras)
+        else:
+            lista_obras=lt.newList(datastructure="ARRAY_LIST")
+            lt.addLast(lista_obras, artwork)
+            mp.put(catalog["Departamentos"], artwork["Department"], lista_obras)"""
 
 # Funciones para creacion de datos
 
@@ -201,7 +191,14 @@ def compareCosto(obra1, obra2):
         return False
 
 # Funciones de ordenamiento
-#def sort
+def sort_obras_nac (lista_obras):
+    lista_obras = sa.sort(lista_obras, compareDate)
+    return lista_obras
+
+def sort_obras_medios (lista_obras):
+    lista_obras = sa.sort(lista_obras, compareDateAcquired)
+    return lista_obras
+
 #Encontrar los n primeros y ultimos de una lista
 def primeros_ultimos(lista, n):
     lista_def = lt.newList()

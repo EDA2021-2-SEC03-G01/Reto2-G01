@@ -23,51 +23,34 @@
 import config as cf
 import model
 import csv
-from DISClib.ADT import list as lt
+
 
 """
 El controlador se encarga de mediar entre la vista y el modelo.
 """
 
 # Inicialización del Catálogo de libros
-def initCatalog(tipo_artistas, tipo_obras):
-   
-    catalog = model.newCatalog(tipo_artistas, tipo_obras)
+def initCatalog():
+    catalog = model.newCatalog()
     return catalog
 
 # Funciones para la carga de datos
 
 def loadData(catalog):
-
     loadArtists(catalog)
     loadArtworks(catalog)
-    loadMediums(catalog)
-    loadNationalities(catalog)
 
 def loadArtists(catalog):
-    artistsfile = cf.data_dir + 'MoMA/Artists-utf8-small.csv'
+    artistsfile = cf.data_dir + 'MoMA/Artists-utf8-large.csv'
     input_file = csv.DictReader(open(artistsfile, encoding='utf-8'))
     for artist in input_file:
         model.addArtist(catalog, artist)
 
 def loadArtworks(catalog):
-    artworksfile = cf.data_dir + 'MoMA/Artworks-utf8-small.csv'
+    artworksfile = cf.data_dir + 'MoMA/Artworks-utf8-large.csv'
     input_file = csv.DictReader(open(artworksfile, encoding='utf-8'))
     for artwork in input_file:
         model.addArtworks(catalog, artwork)
-
-def loadMediums(catalog):
-    artworksfile = cf.data_dir + 'MoMA/Artworks-utf8-small.csv'
-    input_file = csv.DictReader(open(artworksfile, encoding='utf-8'))
-    for artwork in input_file:
-        model.addMedium(catalog, artwork)
-    #model.sort
-
-def loadNationalities(catalog):
-    artistsfile = cf.data_dir + 'MoMA/Artists-utf8-small.csv'
-    input_file = csv.DictReader(open(artistsfile, encoding='utf-8'))
-    for artist in input_file:
-        model.addNationality(catalog, artist)
 
 # Funciones de ordenamiento
 

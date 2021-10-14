@@ -21,6 +21,7 @@
  """
 
 import config as cf
+import time
 import sys
 import controller
 from DISClib.ADT import list as lt
@@ -48,11 +49,11 @@ def printMenu():
     print("9- Consultar cuantas obras tienen una nacionalidad especifica")
     print("0- Salir")
 
-def initCatalog(tipo_artistas, tipo_obras):
+def initCatalog():
     """
     Inicializa el catalogo de libros
     """
-    return controller.initCatalog(tipo_artistas, tipo_obras)
+    return controller.initCatalog()
 
 
 def loadData(catalog):
@@ -70,22 +71,23 @@ while True:
     printMenu()
     inputs = input('Seleccione una opción para continuar\n')
     if int(inputs[0]) == 1: 
-        print("1 - ARRAY LIST \n2 - LINKED_LIST")
-        tipo_artistas = int(input("Seleccione el tipo de representacion de la lista de artistas: "))
-        tipo_obras = int(input("Seleccione el tipo de representacion de la lista de obras: "))
         print("Cargando información de los archivos ....")
-        catalog = initCatalog(tipo_artistas, tipo_obras)
+        catalog = initCatalog()
+        start_time = time.process_time()
         loadData(catalog)
-        #print('Artistas cargados: ' + str(lt.size(catalog['artists'])))
+        stop_time = time.process_time()
+        tiempo = (stop_time - start_time)*1000
+        print('Artistas cargados: ' + str(mp.size(catalog['artists'])))
         #print('Últimos tres artistas:\n' + str(controller.getLastArtists(catalog)))
-        #print('Obras cargadas: ' + str(lt.size(catalog['artworks'])))
+        print('Obras cargadas: ' + str(mp.size(catalog['artworks'])))
         #print('Últimas tres obras:\n' + str(controller.getLastArtworks(catalog)))
-        #print("Medios cargados:" + str(mp.size(catalog["Medios"])))
-        #print(catalog["Medios"])
+        print("Medios cargados: " + str(mp.size(catalog["Medios"])))
+        print(catalog["Medios"])
         print("Nacionalidades cargadas: " + str(mp.size(catalog["Nacionalidades"])))
         print(catalog["Nacionalidades"])
-        
-        
+        #print("Departamentos cargados: " + str(mp.size(catalog["Departamentos"])))
+        #print(catalog["Departamentos"])
+        print("El tiempo de carga fue: " + str(tiempo))
 
     elif int(inputs[0]) == 2:
         print("Tipos de algoritmos de ordenamiento iterativo:\n1- Shell\n2- Insertion\n3- Merge\n4- Quick")
