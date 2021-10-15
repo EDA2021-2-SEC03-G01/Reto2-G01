@@ -52,6 +52,10 @@ def newCatalog():
                                 maptype='PROBING',
                                 loadfactor=0.5, 
                                 )
+    catalog["artists_date"]=mp.newMap(30446, 
+                                maptype='PROBING',
+                                loadfactor=0.5, 
+                                )
     catalog["artworks"]=mp.newMap(276300,
                                 maptype='PROBING',
                                 loadfactor=0.5,
@@ -64,17 +68,26 @@ def newCatalog():
                                 maptype='CHAINING',
                                 loadfactor=2.0,
                                 )
-    """catalog["Departamentos"]=mp.newMap(5,
+    catalog["Departamentos"]=mp.newMap(5,
                                 maptype='CHAINING',
                                 loadfactor=2.0,
-                                )"""
+                                )
 
     return catalog
 
 # Funciones para agregar informacion al catalogo
 def addArtist(catalog, artist):
+    #Artistas por ID
     if not mp.contains(catalog["artists"], artist["ConstituentID"]):
         mp.put(catalog["artists"], artist["ConstituentID"], artist)
+        if mp.contains(catalog["artists_date"], artist["BeginDate"]):
+            lista_artistas = mp.get(catalog["artists_date"], artist["BeginDate"])["value"]
+            lt.addLast(lista_artistas, artist)
+            mp.put(catalog["artists_date"], artist["BeginDate"], lista_artistas)
+        else:
+            lista_artistas=lt.newList(datastructure="ARRAY_LIST")
+            lt.addLast(lista_artistas, artist)
+            mp.put(catalog["artists_date"], artist["BeginDate"], lista_artistas)  
     
 def addArtworks(catalog, artwork):
     if not mp.contains(catalog["artworks"], artwork["ObjectID"]):
@@ -104,14 +117,14 @@ def addArtworks(catalog, artwork):
             lt.addLast(lista_obras, artwork)
             mp.put(catalog["Medios"], artwork["Medium"], lista_obras)
         #Departamentos
-        """if mp.contains(catalog["Departamentos"], artwork["Department"]):
+        if mp.contains(catalog["Departamentos"], artwork["Department"]):
             lista_obras = mp.get(catalog["Departamentos"], artwork["Department"])["value"]
             lt.addLast(lista_obras, artwork)
             mp.put(catalog["Departamentos"], artwork["Department"], lista_obras)
         else:
             lista_obras=lt.newList(datastructure="ARRAY_LIST")
             lt.addLast(lista_obras, artwork)
-            mp.put(catalog["Departamentos"], artwork["Department"], lista_obras)"""
+            mp.put(catalog["Departamentos"], artwork["Department"], lista_obras)
 
 # Funciones para creacion de datos
 
@@ -240,33 +253,23 @@ def tiempo_ord_qs (lista, compare):
 
 # Requerimientos 
 
-def req_1(catalog, año_in, año_fin, tipo_ord):
+def req_1(catalog, año_in, año_fin):
     start_time = time.process_time()
     lista = lt.newList()
     total = 0
-    artistas = catalog["artists"]
-    for i in range(1, lt.size(artistas)+1) :
-    
-        artista = lt.getElement(artistas, i)
-        if int(artista["BeginDate"]) >= int(año_in) and int(artista["BeginDate"]) <= int(año_fin):
+    artistas_date = catalog["artists_date"]
+    for date in mp.keySet(artistas_date):
+        artista = mp.get(artistas_date, date)["value"]
+        if int(date) >= int(año_in) and int(date) <= int(año_fin):
             dic_artist = {"nombre": artista["DisplayName"], "Fecha de nacimiento": artista["BeginDate"], 
             "Fecha de fallecimiento": artista["EndDate"],  "Nacionalidad": artista["Nationality"],  "Genero": artista["Gender"] }
             lt.addLast(lista, dic_artist)
             total += 1
-    #Medir tiempos
-    if tipo_ord == 1:
-        elapsed_time_mseg = tiempo_ord_sa (lista, compareYears)
-    elif tipo_ord == 2:
-        elapsed_time_mseg = tiempo_ord_ins (lista, compareYears)
-    elif tipo_ord == 3:
-        elapsed_time_mseg = tiempo_ord_ms (lista, compareYears)
-    else:
-        elapsed_time_mseg = tiempo_ord_qs (lista, compareYears)
     #Primeros y últimos tres
     lista_def = primeros_ultimos(lista, 3)
     stop_time = time.process_time()
     tiempo_req = (stop_time - start_time)*1000
-    return (total, elapsed_time_mseg, tiempo_req, lista_def)
+    return (total, tiempo_req, lista_def)
 
 #Encontrar los nombres de los autores
 def nombres_autores(artistas, obra):

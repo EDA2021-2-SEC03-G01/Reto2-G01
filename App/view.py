@@ -85,8 +85,8 @@ while True:
         print(catalog["Medios"])
         print("Nacionalidades cargadas: " + str(mp.size(catalog["Nacionalidades"])))
         print(catalog["Nacionalidades"])
-        #print("Departamentos cargados: " + str(mp.size(catalog["Departamentos"])))
-        #print(catalog["Departamentos"])
+        print("Departamentos cargados: " + str(mp.size(catalog["Departamentos"])))
+        print(catalog["Departamentos"])
         print("El tiempo de carga fue: " + str(tiempo))
 
     elif int(inputs[0]) == 2:
