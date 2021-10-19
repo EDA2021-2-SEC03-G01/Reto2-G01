@@ -77,9 +77,10 @@ def newCatalog():
 
 # Funciones para agregar informacion al catalogo
 def addArtist(catalog, artist):
-    #Artistas por ID
     if not mp.contains(catalog["artists"], artist["ConstituentID"]):
+        #Artistas por ID
         mp.put(catalog["artists"], artist["ConstituentID"], artist)
+        #Artistas por Date
         if mp.contains(catalog["artists_date"], artist["BeginDate"]):
             lista_artistas = mp.get(catalog["artists_date"], artist["BeginDate"])["value"]
             lt.addLast(lista_artistas, artist)
@@ -88,16 +89,19 @@ def addArtist(catalog, artist):
             lista_artistas=lt.newList(datastructure="ARRAY_LIST")
             lt.addLast(lista_artistas, artist)
             mp.put(catalog["artists_date"], artist["BeginDate"], lista_artistas)  
-    
+
 def addArtworks(catalog, artwork):
     if not mp.contains(catalog["artworks"], artwork["ObjectID"]):
         mp.put(catalog["artworks"], artwork["ObjectID"], artwork)
         listaIDs = artwork["ConstituentID"]
         listaIDs = listaIDs.replace("[", "").replace("]", "").split(", ")
-        #Nacionalidades
+        lista_nombres = lt.newList(datastructure="ARRAY_LIST")
         for id in listaIDs:
             if mp.contains(catalog["artists"], id):
                 artista = mp.get(catalog["artists"], id)["value"]
+                nombre = artista["DisplayName"]
+                lt.addLast(lista_nombres, nombre)
+                #Nacionalidades
                 nacionalidad = artista["Nationality"]
                 if mp.contains(catalog["Nacionalidades"], nacionalidad):
                     lista_obras = mp.get(catalog["Nacionalidades"], nacionalidad)["value"]
@@ -107,6 +111,8 @@ def addArtworks(catalog, artwork):
                     lista_obras = lt.newList(datastructure="ARRAY_LIST", cmpfunction=compareDate)
                     lt.addLast(lista_obras, artwork)
                     mp.put(catalog["Nacionalidades"], nacionalidad, lista_obras)
+        #Agregar nombres de autores a las obras
+        artwork["AuthorsNames"] = lista_nombres
         #Medios
         if mp.contains(catalog["Medios"], artwork["Medium"]):
             lista_obras = mp.get(catalog["Medios"], artwork["Medium"])["value"]
@@ -126,31 +132,21 @@ def addArtworks(catalog, artwork):
             lt.addLast(lista_obras, artwork)
             mp.put(catalog["Departamentos"], artwork["Department"], lista_obras)
 
-# Funciones para creacion de datos
-
 
 # Funciones de consulta
 
-def getFirstArtists (catalog):
-    primeros = lt.newList()
-    for pos in range(1, 3):
-        artista = lt.getElement(catalog["artists"], pos)
-        lt.addLast(primeros, artista)
-
-    return primeros
-
 def getLastArtists (catalog):
-    ultimos = lt.newList()
-    largoLista = int(lt.size(catalog["artists"]))
+    ultimos = lt.newList(datastructure="ARRAYLIST")
+    largoLista = int(mp.size(catalog["artists"]))
     for pos in range(1, largoLista + 1):
         if (largoLista - pos) < 3:
-            artista = lt.getElement(catalog["artists"], pos)
+            artista = mp.get(catalog["artists"])["value"]
             lt.addLast(ultimos, artista)
 
     return ultimos
 
 def getLastArtworks (catalog):
-    ultimos = lt.newList()
+    ultimos = lt.newList(datastructure="ARRAYLIST")
     largoLista = int(lt.size(catalog["artworks"]))
     for pos in range(1, largoLista + 1):
         if (largoLista - pos) < 3:
@@ -213,8 +209,8 @@ def sort_obras_medios (lista_obras):
     return lista_obras
 
 #Encontrar los n primeros y ultimos de una lista
-def primeros_ultimos(lista, n):
-    lista_def = lt.newList()
+def f_primeros_ultimos(lista, n):
+    lista_def = lt.newList(datastructure="ARRAYLIST")
     for pos in range(1, n+1):
         element = lt.getElement(lista, pos)
         lt.addLast(lista_def, element)
@@ -225,78 +221,38 @@ def primeros_ultimos(lista, n):
             lt.addLast(lista_def, element)
     return lista_def
 
-#Medición de tiempos de ordenamiento
-def tiempo_ord_sa (lista, compare):
-    start_time = time.process_time()
-    lista = sa.sort(lista, compare)
-    stop_time = time.process_time()
-    return (stop_time - start_time)*1000
-
-def tiempo_ord_ins (lista, compare):
-    start_time = time.process_time()
-    lista = ins.sort(lista, compare)
-    stop_time = time.process_time()
-    return (stop_time - start_time)*1000
-
-def tiempo_ord_ms (lista, compare):
-    start_time = time.process_time()
-    lista = ms.sort(lista, compare)
-    stop_time = time.process_time()
-    return (stop_time - start_time)*1000
-
-def tiempo_ord_qs (lista, compare):
-    start_time = time.process_time()
-    lista = qs.sort(lista, compare)
-    stop_time = time.process_time()
-    return (stop_time - start_time)*1000
-
 
 # Requerimientos 
 
+#listo
 def req_1(catalog, año_in, año_fin):
     start_time = time.process_time()
-    lista = lt.newList()
+    lista = lt.newList(datastructure="ARRAY_LIST")
     total = 0
     artistas_date = catalog["artists_date"]
-    for date in mp.keySet(artistas_date):
-        artista = mp.get(artistas_date, date)["value"]
+    lista_dates = mp.keySet(artistas_date)
+    for date in lt.iterator(lista_dates):
+        lista_artistas = mp.get(artistas_date, date)["value"]
         if int(date) >= int(año_in) and int(date) <= int(año_fin):
-            dic_artist = {"nombre": artista["DisplayName"], "Fecha de nacimiento": artista["BeginDate"], 
-            "Fecha de fallecimiento": artista["EndDate"],  "Nacionalidad": artista["Nationality"],  "Genero": artista["Gender"] }
-            lt.addLast(lista, dic_artist)
-            total += 1
+            for artista in lt.iterator(lista_artistas):
+                dic_artist = {"nombre": artista["DisplayName"], "Fecha de nacimiento": artista["BeginDate"], 
+                "Fecha de fallecimiento": artista["EndDate"],  "Nacionalidad": artista["Nationality"],  "Genero": artista["Gender"] }
+                lt.addLast(lista, dic_artist)
+                total += 1
     #Primeros y últimos tres
-    lista_def = primeros_ultimos(lista, 3)
+    lista_ord = ms.sort(lista, compareYears)
+    lista_def = f_primeros_ultimos(lista_ord, 3)
     stop_time = time.process_time()
     tiempo_req = (stop_time - start_time)*1000
     return (total, tiempo_req, lista_def)
 
-#Encontrar los nombres de los autores
-def nombres_autores(artistas, obra):
-    autores = lt.newList(datastructure="ARRAY_LIST")
-    idprueba = ""
-    cadena = str(obra["ConstituentID"])
-    for j in range(1, len(cadena)):
-        if cadena[j] != "[" and cadena[j] != "," and cadena[j] != " " and cadena[j] != "]":
-            idprueba += cadena[j]
-        elif cadena[j] == "," or cadena[j] == "]":
-            seguir = True
-            while seguir:
-                for i in range(1, lt.size(artistas)+1):
-                    autor = lt.getElement(artistas, i)
-                    if int(idprueba) == int(autor["ConstituentID"]):
-                        lt.addLast(autores, autor["DisplayName"])
-                        seguir = False
-            idprueba = ""
-    return autores
-        
-def req_2(catalog, fecha_in, fecha_fin, tipo_ord):
-    start_time = time.process_time()
+#falta
+def req_2(catalog, fecha_in, fecha_fin):
+    start_time = time.process_time(datastructure="ARRAYLIST")
     lista = lt.newList(datastructure="ARRAY_LIST")
     total = 0
     purchase = 0
     obras = catalog["artworks"]
-    artistas = catalog["artists"]
     for i in range(1, lt.size(obras)+1) :
         obra = lt.getElement(obras, i)
         if obra["DateAcquired"] != "":
@@ -306,54 +262,41 @@ def req_2(catalog, fecha_in, fecha_fin, tipo_ord):
         fecha_ini = date.fromisoformat(fecha_in)
         fecha_final = date.fromisoformat(fecha_fin)
         if fecha_adq > fecha_ini and fecha_adq < fecha_final:
-            #Encontrar los nombres de los autores
-            autores = nombres_autores(artistas, obra)
             #Crear el diccionario
-            dic_artwork = {"Titulo": obra["Title"], "Artistas": autores, "Fecha": obra["Date"], "Medio": obra["Medium"],  "Dimensiones": obra["Dimensions"], "Adquisicion": obra["DateAcquired"]  }
+            dic_artwork = {"Titulo": obra["Title"], "Artistas": obra["nombres"], "Fecha": obra["Date"], "Medio": obra["Medium"],  "Dimensiones": obra["Dimensions"], "Adquisicion": obra["DateAcquired"]  }
             lt.addLast(lista, dic_artwork)
             total += 1
             if obra["CreditLine"] == "Purchase":
                 purchase += 1       
-    #Medir tiempos
-    if tipo_ord == 1:
-        elapsed_time_mseg = tiempo_ord_sa (lista, compareDateAcquired)
-    elif tipo_ord == 2:
-        elapsed_time_mseg = tiempo_ord_ins (lista, compareDateAcquired)
-    elif tipo_ord == 3:
-        elapsed_time_mseg = tiempo_ord_ms (lista, compareDateAcquired)
-    else:
-        elapsed_time_mseg = tiempo_ord_qs (lista, compareDateAcquired)
     #Primeros y últimos tres
-    lista_def = primeros_ultimos(lista, 3)
+    lista_def = f_primeros_ultimos(lista, 3)
     stop_time = time.process_time()
     tiempo_req = (stop_time - start_time)*1000
-    return (total, purchase, elapsed_time_mseg, tiempo_req, lista_def)
+    return (total, purchase, tiempo_req, lista_def)
 
-
+#TOMÁS - falta
 def req_3(catalog, nom_artista):
     start_time = time.process_time()
     artista=nom_artista
-    lista=lt.newList()
+    lista=lt.newList(datastructure="ARRAYLIST")
     obras_tecnica = lt.newList(datastructure="ARRAY_LIST")
     total_obras = 0
     total_tecnicas = 0
     mas_utilizada = ""
     obras = catalog["artworks"]
-    artistas = catalog["artists"]
     for i in range(1, lt.size(obras)+1) :
         obra = lt.getElement(obras, i)
-        autores = nombres_autores(artistas, obra)
-        dic_artworks = {"Titulo": obra["Title"], "Artistas": autores, "Fecha": obra["Date"], "Medio": obra["Medium"],  "Dimensiones": obra["Dimensions"], "Adquisicion": obra["DateAcquired"]  }
+        dic_artworks = {"Titulo": obra["Title"], "Artistas": obra["AuthorsNames"], "Fecha": obra["Date"], "Medio": obra["Medium"],  "Dimensiones": obra["Dimensions"], "Adquisicion": obra["DateAcquired"]  }
         lt.addLast(lista, dic_artworks)
     for k in range(1,lt.size(lista)+1):
         for l in range(1,lt.size((lista[k]["Artistas"])+1)):
             if lista[k]["Artistas"][l] == artista:
                 total_obras=+1
-                lista_tecnicas=lt.newList()
+                lista_tecnicas=lt.newList(datastructure="ARRAYLIST")
                 lt.addLast(lista_tecnicas, lista[k]["Medio"])
     mas_utilizada=mode(lista_tecnicas)
     for m in range(1,lt.size(lista_tecnicas)+1):
-        lista_tecnicas_def=lt.newList()
+        lista_tecnicas_def=lt.newList(datastructure="ARRAYLIST")
         if lista_tecnicas[m] not in lista_tecnicas_def:
             lt.addLast(lista_tecnicas_def,lista_tecnicas[m])
             total_tecnicas=+1
@@ -365,49 +308,29 @@ def req_3(catalog, nom_artista):
     tiempo_req = (stop_time - start_time)*1000
     return (total_obras, total_tecnicas, mas_utilizada, tiempo_req, obras_tecnica)
 
-#Encontrar las nacionalidades de los autores
-def nac_autores(artistas, obra):
-    autores = lt.newList(datastructure="ARRAY_LIST")
-    idprueba = ""
-    cadena = str(obra["ConstituentID"])
-    for j in range(1, len(cadena)):
-        if cadena[j] != "[" and cadena[j] != "," and cadena[j] != " " and cadena[j] != "]":
-            idprueba += cadena[j]
-        elif cadena[j] == "," or cadena[j] == "]":
-            seguir = True
-            while seguir:
-                for i in range(1, lt.size(artistas)+1):
-                    autor = lt.getElement(artistas, i)
-                    if int(idprueba) == int(autor["ConstituentID"]):
-                        lt.addLast(autores, autor["Nationality"])
-                        seguir = False
-            idprueba = ""
-    return autores
-
+#DANIELA - listo
 def req_4(catalog):
     start_time = time.process_time()
-    obras = catalog["artworks"]
-    artistas = catalog["artists"]
     solo_nac = lt.newList(datastructure="ARRAY_LIST")
-    obras_nac_mas = lt.newList(datastructure="ARRAY_LIST")
     dic_nac = {}
-    for o in range(1, lt.size(obras)+1):
-        obra = lt.getElement(obras, o)
-        nacs = nac_autores(artistas, obra)
-        for n in range(1, lt.size(nacs)+1):
-            nac = lt.getElement(nacs, n)
+    map_obras = catalog["Nacionalidades"]
+    lista_nac = mp.keySet(map_obras)
+    for nac in lt.iterator(lista_nac):
+        lista_obras = mp.get(map_obras, nac)["value"]
+        for obra in lt.iterator(lista_obras):
             if lt.isPresent(solo_nac, nac) == 0:
-                nacionalidad = nac
-                lt.addLast(solo_nac, nacionalidad)
-                dic_nac[nacionalidad] = 1
+                lt.addLast(solo_nac, nac)
                 if nac == "":
-                    dic_nac["Nationality unknown"] += 1
+                    dic_nac["Nationality unknown"] = 1
+                else:
+                    dic_nac[nac] = 1
             else:
                 if nac == "":
                     dic_nac["Nationality unknown"] += 1
                 else:
                     dic_nac[nac] += 1
     sorted_values = sorted(dic_nac.values(), reverse=True)
+    #Top 10 nacionalidades
     sorted_dict = {}
     for i in sorted_values:
         for k in dic_nac.keys():
@@ -416,23 +339,26 @@ def req_4(catalog):
                     sorted_dict[k] = dic_nac[k]
                 else:
                     break
-    nac_mas = list(sorted_dict.keys())[0]
-    for o in range(1, lt.size(obras)+1):
-        obra = lt.getElement(obras, o)
-        nacs = nac_autores(artistas, obra)
-        if lt.isPresent(nacs, nac_mas) != 0:
-            lt.addLast(obras_nac_mas, obra)
-    n_obras_nac_mas = lt.size(obras_nac_mas)
-    #Primeras y últimas tres
-    lista_def = primeros_ultimos(obras_nac_mas, 3)
+    #Top nacionalidad
+    nac_top = list(sorted_dict.keys())[0]
+    #Obras totales del Top nacionalidad
+    obras_top = mp.get(map_obras, nac_top)["value"]
+    #Primeras y últimas tres UNICAS del Top nacionalidad
+    obras_top_unicas = lt.newList(datastructure="ARRAY_LIST")
+    for obra in lt.iterator(obras_top):
+        if obra not in lt.iterator(obras_top_unicas):
+            lt.addLast(obras_top_unicas, obra)
+    primeros_ultimos = f_primeros_ultimos(obras_top_unicas, 3)
+    #Número obras UNICAS del Top nacionalidad
+    num_obras_top = lt.size(obras_top_unicas)
+    #Tiempo
     stop_time = time.process_time()
     tiempo_req = (stop_time - start_time)*1000
-    return (sorted_dict, lista_def, nac_mas, tiempo_req, n_obras_nac_mas)
+    return (sorted_dict, primeros_ultimos, nac_top, tiempo_req, num_obras_top)
 
+#listo
 def req_5(catalog, dep):
     start_time = time.process_time()
-    obras = catalog["artworks"]
-    artistas = catalog["artists"]
     costo_kg = 0.0
     costo_m2 = 0.0
     costo_m3 = 0.0
@@ -443,78 +369,76 @@ def req_5(catalog, dep):
     costo_def = 0.0
     obras_transp = lt.newList(datastructure="ARRAY_LIST")
     obras_costos = lt.newList(datastructure="ARRAY_LIST")
-    for o in range(1, lt.size(obras)+1):
-        obra = lt.getElement(obras, o)
-        if obra["Department"] == dep:
-            peso = obra["Weight (kg)"]
-            diametro = obra["Diameter (cm)"]
-            circum = obra["Circumference (cm)"]
-            largo = obra["Length (cm)"] 
-            alto = obra["Height (cm)"]
-            ancho = obra["Width (cm)"]
-            prof = obra["Depth (cm)"]
+    obras_dep = mp.get(catalog["Departamentos"], dep)["value"]
+    for obra in lt.iterator(obras_dep):
+        peso = obra["Weight (kg)"]
+        diametro = obra["Diameter (cm)"]
+        circum = obra["Circumference (cm)"]
+        largo = obra["Length (cm)"] 
+        alto = obra["Height (cm)"]
+        ancho = obra["Width (cm)"]
+        prof = obra["Depth (cm)"]
 
-            #KG
-            if peso != "":
-                costo_kg = float(peso) * tasa
-                peso_tot += peso
+        #KG
+        if peso != "":
+            costo_kg = float(peso) * tasa
+            peso_tot += peso
 
-            #M2
-            if alto != "" and ancho != "":
-                costo_m2 = (float(alto)*0.01 *float(ancho)*0.01) * tasa
-            elif alto != "" and largo != "":
-                costo_m2 = (float(alto)*0.01 *float(largo)*0.01)  * tasa
-            elif alto != "" and prof != "":
-                costo_m2 = (float(alto)*0.01 *float(prof)*0.01)  * tasa
-            elif ancho != "" and largo != "":
-                costo_m2 = (float(ancho)*0.01 *float(largo)*0.01)  * tasa
-            elif ancho != "" and prof != "":
-                costo_m2 = (float(ancho)*0.01 *float(prof)*0.01)  * tasa
-            elif largo != "" and prof != "":
-                costo_m2 = (float(largo)*0.01 *float(prof)*0.01)  * tasa
-            elif diametro != "":
-                costo_m2 = ((((float(diametro)*0.01)/2)**2) * 3,14) * tasa
-            elif circum  != "":
-                costo_m2 = (((float(circum)*0.01)**2)/(4 * 3,14)) * tasa
-            
-            #M3
-            if  alto != "" and ancho != "" and prof != "":
-                costo_m3 = float(alto)*0.01 * float(ancho)*0.01 * float(prof)*0.01 * tasa
-            elif  alto != "" and ancho != "" and largo != "":
-                costo_m3 = float(alto)*0.01 * float(ancho)*0.01 * float(largo)*0.01 * tasa
-            elif  alto != "" and prof != "" and largo != "":
-                costo_m3 = float(alto)*0.01 * float(prof)*0.01 * float(largo)*0.01 * tasa
-            elif  ancho != "" and prof != "" and largo != "":
-                costo_m3 = float(ancho)*0.01 * float(prof)*0.01 * float(largo)*0.01 * tasa
-            elif diametro != "" and alto != "":
-                costo_m3 = (((float(diametro)*0.01)/2)**2) * 3,14 * float(alto) * tasa
-            elif diametro != "" and ancho != "":
-                costo_m3 = (((float(diametro)*0.01)/2)**2) * 3,14 * float(ancho) * tasa
-            elif diametro != "" and prof != "":
-                costo_m3 = (((float(diametro)*0.01)/2)**2) * 3,14 * float(prof) * tasa
-            elif diametro != "" and largo != "":
-                costo_m3 = (((float(diametro)*0.01)/2)**2) * 3,14 * float(largo) * tasa
+        #M2
+        if alto != "" and ancho != "":
+            costo_m2 = (float(alto)*0.01 *float(ancho)*0.01) * tasa
+        elif alto != "" and largo != "":
+            costo_m2 = (float(alto)*0.01 *float(largo)*0.01)  * tasa
+        elif alto != "" and prof != "":
+            costo_m2 = (float(alto)*0.01 *float(prof)*0.01)  * tasa
+        elif ancho != "" and largo != "":
+            costo_m2 = (float(ancho)*0.01 *float(largo)*0.01)  * tasa
+        elif ancho != "" and prof != "":
+            costo_m2 = (float(ancho)*0.01 *float(prof)*0.01)  * tasa
+        elif largo != "" and prof != "":
+            costo_m2 = (float(largo)*0.01 *float(prof)*0.01)  * tasa
+        elif diametro != "":
+            costo_m2 = ((((float(diametro)*0.01)/2)**2) * 3,14) * tasa
+        elif circum  != "":
+            costo_m2 = (((float(circum)*0.01)**2)/(4 * 3,14)) * tasa
+        
+        #M3
+        if  alto != "" and ancho != "" and prof != "":
+            costo_m3 = float(alto)*0.01 * float(ancho)*0.01 * float(prof)*0.01 * tasa
+        elif  alto != "" and ancho != "" and largo != "":
+            costo_m3 = float(alto)*0.01 * float(ancho)*0.01 * float(largo)*0.01 * tasa
+        elif  alto != "" and prof != "" and largo != "":
+            costo_m3 = float(alto)*0.01 * float(prof)*0.01 * float(largo)*0.01 * tasa
+        elif  ancho != "" and prof != "" and largo != "":
+            costo_m3 = float(ancho)*0.01 * float(prof)*0.01 * float(largo)*0.01 * tasa
+        elif diametro != "" and alto != "":
+            costo_m3 = (((float(diametro)*0.01)/2)**2) * 3,14 * float(alto) * tasa
+        elif diametro != "" and ancho != "":
+            costo_m3 = (((float(diametro)*0.01)/2)**2) * 3,14 * float(ancho) * tasa
+        elif diametro != "" and prof != "":
+            costo_m3 = (((float(diametro)*0.01)/2)**2) * 3,14 * float(prof) * tasa
+        elif diametro != "" and largo != "":
+            costo_m3 = (((float(diametro)*0.01)/2)**2) * 3,14 * float(largo) * tasa
 
-            costo_def = max(costo_kg, costo_m2, costo_m3)
-            if costo_def == 0.0:
-                costo_def = 48.00
-            costo_tot += costo_def
-            total_obras += 1
-            autores = nombres_autores(artistas, obra)
-            if (obra["Date"]) == "":
-                obra["Date"] = 3000
-            dic_artwork = {"Titulo": obra["Title"], "Artistas": autores, "Clasificacion":obra["Classification"], "Fecha": obra["Date"], "Medio": obra["Medium"],  "Dimensiones": obra["Dimensions"], "Costo transporte":costo_def}
-            lt.addLast(obras_transp, dic_artwork)
-            lt.addLast(obras_costos, dic_artwork)
+        costo_def = max(costo_kg, costo_m2, costo_m3)
+        if costo_def == 0.0:
+            costo_def = 48.00
+        costo_tot += costo_def
+        total_obras += 1
+        if (obra["Date"]) == "":
+            obra["Date"] = 3000
+        dic_artwork = {"Titulo": obra["Title"], "Artistas": obra["AuthorsNames"], "Clasificacion":obra["Classification"], "Fecha": obra["Date"], "Medio": obra["Medium"],  "Dimensiones": obra["Dimensions"], "Costo transporte":costo_def}
+        lt.addLast(obras_transp, dic_artwork)
+        lt.addLast(obras_costos, dic_artwork)
     obras_transp = ms.sort(obras_transp, compareDate)
     obras_costos = ms.sort(obras_costos, compareCosto)
     #cinco más viejas
-    lista_transp_def = lt.newList()
+    lista_transp_def = lt.newList(datastructure="ARRAYLIST")
     for pos in range(1, 6):
         obra = lt.getElement(obras_transp, pos)
         lt.addLast(lista_transp_def, obra)
     #cinco más caras
-    obras_costos_def = lt.newList()
+    obras_costos_def = lt.newList(datastructure="ARRAYLIST")
     for pos in range(1, 6):
         obra = lt.getElement(obras_costos, pos)
         lt.addLast(obras_costos_def, obra)
@@ -522,57 +446,10 @@ def req_5(catalog, dep):
     tiempo_req = (stop_time - start_time)*1000
     return (total_obras, costo_tot, peso_tot, lista_transp_def, tiempo_req, obras_costos_def)
 
-def req_6(catalog, ano_ini, ano_fin, Area_disp ):
-    start_time = time.process_time()
-    tot_obras_anos=0
-    tot_obras=0
-    Area_usada=0
-    obras_usadas=lt.newList(datastructure="ARRAY_LIST")
-    obras = catalog["artworks"]
-    artistas=catalog["artists"]
-    for i in range(1,lt.size(obras)+1):
-        obra=lt.getElement(obras,i)
-        if obra["DateAcquired"] != "":
-            fecha_adq = date.fromisoformat(obra["DateAcquired"])
-        else:
-            fecha_adq = date.fromisoformat("0001-01-01")
-        fecha_ini = date.fromisoformat(ano_ini + "-01-01")
-        fecha_final = date.fromisoformat(ano_fin + "-12-31")
-        if fecha_adq < fecha_final and fecha_adq > fecha_ini:
-            tot_obras_anos=+1
-            diametro = obra["Diameter (cm)"]
-            circum = obra["Circumference (cm)"]
-            largo = obra["Length (cm)"] 
-            alto = obra["Height (cm)"]
-            ancho = obra["Width (cm)"]
-            prof = obra["Depth (cm)"]
-            while Area_usada<float(Area_disp):
-                if alto != "" and ancho != "":
-                    Area_usada += (float(alto)*0.01 *float(ancho)*0.01)
-                elif alto != "" and largo != "":
-                    Area_usada += (float(alto)*0.01 *float(largo)*0.01) 
-                elif alto != "" and prof != "":
-                    Area_usada += (float(alto)*0.01 *float(prof)*0.01)
-                elif ancho != "" and largo != "":
-                    Area_usada += (float(ancho)*0.01 *float(largo)*0.01)
-                elif ancho != "" and prof != "":
-                    Area_usada += (float(ancho)*0.01 *float(prof)*0.01)
-                elif largo != "" and prof != "":
-                    Area_usada += (float(largo)*0.01 *float(prof)*0.01)
-                elif diametro != "":
-                    Area_usada += ((((float(diametro)*0.01)/2)**2) * 3,14)
-                elif circum  != "":
-                    Area_usada += (((float(circum)*0.01)**2)/(4 * 3,14))
-                tot_obras += 1
-                autores = nombres_autores(artistas, obra)
-                dic_obra={"Titulo":obra["Title"], "Artista(s)":autores, "Fecha":obra["Date"], "Clasificacion":obra["Classification"], "Medio":obra["Medium"], "Dimensiones":obra["Dimensions"], "Adquisicion":obra["DateAcquired"]}
-                lt.addLast(obras_usadas, dic_obra)
-    obras_ord=ms.sort(obras_usadas,compareDateAcquired)
-    prim_ult_5=primeros_ultimos(obras_ord, 5)
-    stop_time = time.process_time()
-    tiempo_req = (stop_time - start_time)*1000
-    return (tot_obras_anos, tot_obras, Area_usada, tiempo_req, prim_ult_5)
+#BONO - falta
 
+
+#LABORATORIOS
 def lab_5(catalog, n, medio):
     lista_obras=lt.newList(datastructure="ARRAY_LIST")
     a=mp.get(catalog["Medios"], medio)
@@ -580,7 +457,7 @@ def lab_5(catalog, n, medio):
     lista_obras = me.getValue(a)
     print(lista_obras)
     sa.sort(lista_obras, compareDateAcquired )
-    lista_def = lt.newList()
+    lista_def = lt.newList(datastructure="ARRAYLIST")
     for pos in range(1, n+1):
         element = lt.getElement(lista_obras, pos)
         lt.addLast(lista_def, element)
