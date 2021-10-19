@@ -77,17 +77,20 @@ while True:
         loadData(catalog)
         stop_time = time.process_time()
         tiempo = (stop_time - start_time)*1000
-        print('Artistas cargados: ' + str(mp.size(catalog['artists'])))
-        #print('\nÚltimos tres artistas:\n' + str(controller.getLastArtists(catalog)))
-        print('Obras cargadas: ' + str(mp.size(catalog['artworks'])))
-        #print('\nÚltimas tres obras:\n' + str(controller.getLastArtworks(catalog)))
+        print('\nArtistas cargados: ' + str(mp.size(catalog['artists'])))
+        print('\nÚltimos tres artistas:')
+        ultimos_artistas = controller.getLastArtists(catalog)
+        for artista in lt.iterator(ultimos_artistas):
+            print(artista)
+        print('\nObras cargadas: ' + str(mp.size(catalog['artworks'])))
+        print('\nÚltimas tres obras:')
+        ultimas_obras = controller.getLastArtworks(catalog)
+        for obra in lt.iterator(ultimas_obras):
+            print(obra)
         print("\nMedios cargados: " + str(mp.size(catalog["Medios"])))
-        print(catalog["Medios"]) #Falta modificar - ultimos 3
         print("\nNacionalidades cargadas: " + str(mp.size(catalog["Nacionalidades"])))
-        print(catalog["Nacionalidades"]) #Falta modificar - ultimas 3
         print("\nDepartamentos cargados: " + str(mp.size(catalog["Departamentos"])))
-        print(catalog["Departamentos"]) #Falta modificar - ultimos 3
-        print("\nEl tiempo de carga fue: " + str(tiempo))
+        print("\nEl tiempo de carga fue: " + str(tiempo)+"\n")
 
     elif int(inputs[0]) == 2:
         año_in = int(input("Ingrese el año inicial: "))

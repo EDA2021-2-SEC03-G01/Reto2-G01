@@ -26,6 +26,7 @@
 
 
 from DISClib.DataStructures.arraylist import iterator
+from DISClib.DataStructures.chaininghashtable import get
 import config as cf
 import time
 from DISClib.ADT import list as lt
@@ -46,7 +47,7 @@ otra para las categorias de los mismos.
 
 # Construccion de modelos
 def newCatalog():
-    catalog={"artists":None,"artworks":None}
+    catalog={}
 
     catalog["artists"]=mp.newMap(30446, 
                                 maptype='PROBING',
@@ -72,13 +73,17 @@ def newCatalog():
                                 maptype='CHAINING',
                                 loadfactor=2.0,
                                 )
+    catalog["ObjectIDs"] = lt.newList(datastructure="ARRAY_LIST")
+    catalog["ConstituentIDs"] = lt.newList(datastructure="ARRAY_LIST")                         
 
     return catalog
 
 # Funciones para agregar informacion al catalogo
 def addArtist(catalog, artist):
     if not mp.contains(catalog["artists"], artist["ConstituentID"]):
-        #Artistas por ID
+        #Lista de Constituent IDs
+        lt.addLast(catalog["ConstituentIDs"], artist["ConstituentID"])
+        #Artistas por COnstituent ID
         mp.put(catalog["artists"], artist["ConstituentID"], artist)
         #Artistas por Date
         if mp.contains(catalog["artists_date"], artist["BeginDate"]):
@@ -92,16 +97,21 @@ def addArtist(catalog, artist):
 
 def addArtworks(catalog, artwork):
     if not mp.contains(catalog["artworks"], artwork["ObjectID"]):
+        #Lista de Object IDs
+        lt.addLast(catalog["ObjectIDs"], artwork["ObjectID"])
+        #Obras por Object ID
         mp.put(catalog["artworks"], artwork["ObjectID"], artwork)
+        #Lista de IDs de autores
         listaIDs = artwork["ConstituentID"]
         listaIDs = listaIDs.replace("[", "").replace("]", "").split(", ")
         lista_nombres = lt.newList(datastructure="ARRAY_LIST")
         for id in listaIDs:
             if mp.contains(catalog["artists"], id):
+                #Lista de nombres de autores
                 artista = mp.get(catalog["artists"], id)["value"]
                 nombre = artista["DisplayName"]
                 lt.addLast(lista_nombres, nombre)
-                #Nacionalidades
+                #Mapa Nacionalidades
                 nacionalidad = artista["Nationality"]
                 if mp.contains(catalog["Nacionalidades"], nacionalidad):
                     lista_obras = mp.get(catalog["Nacionalidades"], nacionalidad)["value"]
@@ -111,9 +121,9 @@ def addArtworks(catalog, artwork):
                     lista_obras = lt.newList(datastructure="ARRAY_LIST", cmpfunction=compareDate)
                     lt.addLast(lista_obras, artwork)
                     mp.put(catalog["Nacionalidades"], nacionalidad, lista_obras)
-        #Agregar nombres de autores a las obras
+        #Agregar lista de nombres de autores al dic de cada obra
         artwork["AuthorsNames"] = lista_nombres
-        #Medios
+        #Mapa Medios
         if mp.contains(catalog["Medios"], artwork["Medium"]):
             lista_obras = mp.get(catalog["Medios"], artwork["Medium"])["value"]
             lt.addLast(lista_obras, artwork)
@@ -122,7 +132,7 @@ def addArtworks(catalog, artwork):
             lista_obras=lt.newList(datastructure="ARRAY_LIST", cmpfunction=compareDateAcquired)
             lt.addLast(lista_obras, artwork)
             mp.put(catalog["Medios"], artwork["Medium"], lista_obras)
-        #Departamentos
+        #Mapa Departamentos
         if mp.contains(catalog["Departamentos"], artwork["Department"]):
             lista_obras = mp.get(catalog["Departamentos"], artwork["Department"])["value"]
             lt.addLast(lista_obras, artwork)
@@ -134,26 +144,63 @@ def addArtworks(catalog, artwork):
 
 
 # Funciones de consulta
+def getFirtsArtists (catalog):
+    pimeros = lt.newList(datastructure="ARRAYLIST")
+    listaConsIDs = catalog["ConstituentIDs"]
+    id1 = lt.getElement(listaConsIDs, 1)
+    id2 = lt.getElement(listaConsIDs, 2)
+    id3 = lt.getElement(listaConsIDs, 3)
+    artista1 = mp.get(catalog["artists"], id1)["value"]
+    artista2 = mp.get(catalog["artists"], id2)["value"]
+    artista3 = mp.get(catalog["artists"], id3)["value"]
+    lt.addLast(pimeros, artista1)
+    lt.addLast(pimeros, artista2)
+    lt.addLast(pimeros, artista3)
+    return pimeros
+
+def getFirstsArtworks (catalog):
+    pimeros = lt.newList(datastructure="ARRAYLIST")
+    listaObjIDs = catalog["ObjectIDs"]
+    id1 = lt.getElement(listaObjIDs, 1)
+    id2 = lt.getElement(listaObjIDs, 2)
+    id3 = lt.getElement(listaObjIDs, 3)
+    obra1 = mp.get(catalog["artworks"], id1)["value"]
+    obra2 = mp.get(catalog["artworks"], id2)["value"]
+    obra3 = mp.get(catalog["artworks"], id3)["value"]
+    lt.addLast(pimeros, obra1)
+    lt.addLast(pimeros, obra2)
+    lt.addLast(pimeros, obra3)
+    return pimeros
 
 def getLastArtists (catalog):
     ultimos = lt.newList(datastructure="ARRAYLIST")
-    largoLista = int(mp.size(catalog["artists"]))
-    for pos in range(1, largoLista + 1):
-        if (largoLista - pos) < 3:
-            artista = mp.get(catalog["artists"])["value"]
-            lt.addLast(ultimos, artista)
-
+    listaConsIDs = catalog["ConstituentIDs"]
+    sizeConsIds = int(lt.size(listaConsIDs))
+    id1 = lt.getElement(listaConsIDs, sizeConsIds-2)
+    id2 = lt.getElement(listaConsIDs, sizeConsIds-1)
+    id3 = lt.getElement(listaConsIDs, sizeConsIds)
+    artista1 = mp.get(catalog["artists"], id1)["value"]
+    artista2 = mp.get(catalog["artists"], id2)["value"]
+    artista3 = mp.get(catalog["artists"], id3)["value"]
+    lt.addLast(ultimos, artista1)
+    lt.addLast(ultimos, artista2)
+    lt.addLast(ultimos, artista3)
     return ultimos
 
 def getLastArtworks (catalog):
-    ultimos = lt.newList(datastructure="ARRAYLIST")
-    largoLista = int(lt.size(catalog["artworks"]))
-    for pos in range(1, largoLista + 1):
-        if (largoLista - pos) < 3:
-            artista = lt.getElement(catalog["artworks"], pos)
-            lt.addLast(ultimos, artista)
-
-    return ultimos
+    ultimas = lt.newList(datastructure="ARRAYLIST")
+    listaObjIDs = catalog["ObjectIDs"]
+    sizeObjIds = int(lt.size(listaObjIDs))
+    id1 = lt.getElement(listaObjIDs, sizeObjIds-2)
+    id2 = lt.getElement(listaObjIDs, sizeObjIds-1)
+    id3 = lt.getElement(listaObjIDs, sizeObjIds)
+    obra1 = mp.get(catalog["artworks"], id1)["value"]
+    obra2 = mp.get(catalog["artworks"], id2)["value"]
+    obra3 = mp.get(catalog["artworks"], id3)["value"]
+    lt.addLast(ultimas, obra1)
+    lt.addLast(ultimas, obra2)
+    lt.addLast(ultimas, obra3)
+    return ultimas
 
 # Funciones utilizadas para comparar elementos dentro de una lista
 
