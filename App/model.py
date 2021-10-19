@@ -248,13 +248,14 @@ def req_1(catalog, año_in, año_fin):
 
 #falta
 def req_2(catalog, fecha_in, fecha_fin):
-    start_time = time.process_time(datastructure="ARRAYLIST")
+    start_time = time.process_time()
     lista = lt.newList(datastructure="ARRAY_LIST")
     total = 0
     purchase = 0
     obras = catalog["artworks"]
-    for i in range(1, lt.size(obras)+1) :
-        obra = lt.getElement(obras, i)
+    lista_obras=mp.keySet(obras)
+    for id_obra in lt.iterator(lista_obras):
+        obra = mp.get(obras, id_obra)["value"]
         if obra["DateAcquired"] != "":
             fecha_adq = date.fromisoformat(obra["DateAcquired"])
         else:
@@ -263,11 +264,13 @@ def req_2(catalog, fecha_in, fecha_fin):
         fecha_final = date.fromisoformat(fecha_fin)
         if fecha_adq > fecha_ini and fecha_adq < fecha_final:
             #Crear el diccionario
-            dic_artwork = {"Titulo": obra["Title"], "Artistas": obra["nombres"], "Fecha": obra["Date"], "Medio": obra["Medium"],  "Dimensiones": obra["Dimensions"], "Adquisicion": obra["DateAcquired"]  }
+            dic_artwork = {"Titulo": obra["Title"], "Artistas": obra["AuthorsNames"], "Fecha": obra["Date"], "Medio": obra["Medium"],  "Dimensiones": obra["Dimensions"], "Adquisicion": obra["DateAcquired"]  }
             lt.addLast(lista, dic_artwork)
             total += 1
             if obra["CreditLine"] == "Purchase":
                 purchase += 1       
+    #Medir tiempos
+    sa.sort(lista, compareDateAcquired)
     #Primeros y últimos tres
     lista_def = f_primeros_ultimos(lista, 3)
     stop_time = time.process_time()
@@ -275,38 +278,7 @@ def req_2(catalog, fecha_in, fecha_fin):
     return (total, purchase, tiempo_req, lista_def)
 
 #TOMÁS - falta
-def req_3(catalog, nom_artista):
-    start_time = time.process_time()
-    artista=nom_artista
-    lista=lt.newList(datastructure="ARRAYLIST")
-    obras_tecnica = lt.newList(datastructure="ARRAY_LIST")
-    total_obras = 0
-    total_tecnicas = 0
-    mas_utilizada = ""
-    obras = catalog["artworks"]
-    for i in range(1, lt.size(obras)+1) :
-        obra = lt.getElement(obras, i)
-        dic_artworks = {"Titulo": obra["Title"], "Artistas": obra["AuthorsNames"], "Fecha": obra["Date"], "Medio": obra["Medium"],  "Dimensiones": obra["Dimensions"], "Adquisicion": obra["DateAcquired"]  }
-        lt.addLast(lista, dic_artworks)
-    for k in range(1,lt.size(lista)+1):
-        for l in range(1,lt.size((lista[k]["Artistas"])+1)):
-            if lista[k]["Artistas"][l] == artista:
-                total_obras=+1
-                lista_tecnicas=lt.newList(datastructure="ARRAYLIST")
-                lt.addLast(lista_tecnicas, lista[k]["Medio"])
-    mas_utilizada=mode(lista_tecnicas)
-    for m in range(1,lt.size(lista_tecnicas)+1):
-        lista_tecnicas_def=lt.newList(datastructure="ARRAYLIST")
-        if lista_tecnicas[m] not in lista_tecnicas_def:
-            lt.addLast(lista_tecnicas_def,lista_tecnicas[m])
-            total_tecnicas=+1
-    for n in range(1, lt.size(lista)+1):
-        if artista in lista[n]["Artistas"] and lista[n]["Medio"]==mas_utilizada:
-            dic_obra={"Titulo": lista[n]["Titulo"], "Fecha": lista[n]["Fecha"], "Medio": lista[n]["Medio"], "Dimensiones": lista[n]["Dimensiones"]}
-            lt.addLast(obras_tecnica, dic_obra)
-    stop_time = time.process_time()
-    tiempo_req = (stop_time - start_time)*1000
-    return (total_obras, total_tecnicas, mas_utilizada, tiempo_req, obras_tecnica)
+
 
 #DANIELA - listo
 def req_4(catalog):
