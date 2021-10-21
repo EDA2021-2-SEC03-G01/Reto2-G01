@@ -379,7 +379,7 @@ def req_3(catalog, nom_artista):
     return (total_obras, total_tecnicas, mas_utilizada, tiempo_req, obras_tecnica, primeras_ultimas)
 
 #DANIELA - listo
-def req_4(catalog):
+def req_4(catalog): 
     start_time = time.process_time()
     solo_nac = lt.newList(datastructure="ARRAY_LIST")
     dic_nac = {}
