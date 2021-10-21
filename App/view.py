@@ -107,11 +107,15 @@ while True:
         fecha_fin = (input("Ingrese la fecha final (YYYY-MM-DD): "))
         (total, purchase, tiempo_req, obras) = controller.req_2(catalog, fecha_in, fecha_fin)
         print("\nFueron adquiridas " + str(total) + " obras entre " + str(fecha_in) + " y " + str(fecha_fin))
-        print(str(purchase) + " de estas fueron compradas. ")
-        print("\nA continuación se muestran las primeras y ultimas tres: ")
-        for obra in lt.iterator(obras):
-            print(obra)
-        print("\nEl tiempo de respuesta para este requerimiento fue: " + str(tiempo_req)+"\n")
+        if obras != None:
+            print(str(purchase) + " de estas fueron compradas. ")
+            print("\nA continuación se muestran las primeras y ultimas tres: ")
+            for obra in lt.iterator(obras):
+                print(obra)
+            print("\nEl tiempo de respuesta para este requerimiento fue: " + str(tiempo_req)+"\n")
+        else:
+            print("\nSeleccione un rango de años más amplio.\n")
+
 
     elif int(inputs[0]) == 4:
         artista=input("Ingrese el nombre del artista de interés:  ")
@@ -125,14 +129,14 @@ while True:
         print("\nEl tiempo de respuesta para este requerimiento fue: " + str(tiempo_req)+"\n")
 
     elif int(inputs[0]) == 5:
-        (sorted_dict, primeros_ultimos, nac_mas, tiempo_req, n_obras_nac_mas) = controller.req_4(catalog)
-        print("\nEl Top 10 de nacionalidades en el MoMA es:\n " + str(sorted_dict))
-        print("La nacionalidad más frecuente en el MoMA es " + (nac_mas) + " con " + str(n_obras_nac_mas) + " obras únicas.")
+        (nac_top10, primeros_ultimos, nac_mas, tiempo_req, num_unicas_top) = controller.req_4(catalog)
+        print("\nEl Top 10 de nacionalidades en el MoMA es:\n " + str(nac_top10))
+        print("La nacionalidad más frecuente en el MoMA es " + (nac_mas) + " con " + str(num_unicas_top) + " obras únicas.")
         print("\nA continuación se muestran las primeras y últimas tres: ")
         for obra in lt.iterator(primeros_ultimos):
             print(obra)
         print("\nEl tiempo de respuesta para este requerimiento fue: " + str(tiempo_req)+"\n")
-    
+
     elif int(inputs[0]) == 6:
         dep = input("Ingrese el departamento del que desea transportar las obras: ")
         (total_obras, costo_tot, peso_tot, lista_transp_def, tiempo_req, obras_costos_def) = controller.req_5(catalog, dep)

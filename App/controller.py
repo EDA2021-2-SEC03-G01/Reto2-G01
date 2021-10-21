@@ -76,9 +76,10 @@ def req_3(catalog, artista):
     return (total_obras, total_tecnicas, mas_utilizada, tiempo_req, obras_tecnica, primeras_ultimas)
 
 def req_4(catalog):
-    (sorted_dict, primeros_ultimos, nac_mas, tiempo_req, n_obras_nac_mas) = model.req_4(catalog)
-    return (sorted_dict, primeros_ultimos, nac_mas, tiempo_req, n_obras_nac_mas)
+    (nac_top10, primeros_ultimos, nac_mas, tiempo_req, num_unicas_top) = model.req_4(catalog)
+    return (nac_top10, primeros_ultimos, nac_mas, tiempo_req, num_unicas_top)
 
+    
 def req_5(catalog, dep):
     (total_obras, costo_tot, peso_tot, lista_transp_def, tiempo_req, obras_costos_def) = model.req_5(catalog, dep)
     return (total_obras, costo_tot, peso_tot, lista_transp_def, tiempo_req, obras_costos_def)
