@@ -84,7 +84,9 @@ def req_5(catalog, dep):
     return (total_obras, costo_tot, peso_tot, lista_transp_def, tiempo_req, obras_costos_def)
 
 #BONO
-
+def bono (catalog, año_in, año_fin, n):
+    (lista_def,tiempo_req) = model.bono (catalog, año_in, año_fin, n)
+    return (lista_def,tiempo_req)
 
 
 #LABORATORIOS

@@ -219,6 +219,18 @@ def compareYears(artista1, artista2):
     else:
         return False
 
+def compareNumeroObras(artista1, artista2):
+    if (int(artista1["Total Obras"]) <= int(artista2["Total Obras"])):
+        return True
+    else:
+        return False
+
+def compareNumeroTecnicas(artista1, artista2):
+    if (int(artista1["Total Tecnicas"]) <= int(artista2["Total Tecnicas"])):
+        return True
+    else:
+        return False
+
 #Artworks
 def compareArtworks(obra1, obra2):
     if obra1["ObjectID"] < obra2["ObjectID"]:
@@ -325,7 +337,45 @@ def req_2(catalog, fecha_in, fecha_fin):
     return (total, purchase, tiempo_req, lista_def)
 
 #TOMÁS - falta
-
+def req_3(catalog, nom_artista):
+    start_time = time.process_time()
+    artista=nom_artista
+    lista=lt.newList(datastructure="ARRAYLIST")
+    obras_tecnica = lt.newList(datastructure="ARRAY_LIST")
+    total_obras = 0
+    total_tecnicas = 0
+    mas_utilizada = ""
+    obras = catalog["artworks"]
+    lista_obras = mp.keySet(obras)
+    for id_obra in lt.iterator(lista_obras):
+        obra=mp.get(obras, id_obra)["value"]
+        for autor in lt.iterator(obra["AuthorsNames"]):
+            if autor == artista:
+                total_obras=+1
+                lista_tecnicas=lt.newList(datastructure="ARRAYLIST")
+                lt.addLast(lista_tecnicas, obra["Medium"])
+    for tecnica in lt.iterator(lista_tecnicas):
+        lista_tecnicas_def=lt.newList(datastructure="ARRAYLIST")
+        if tecnica not in lista_tecnicas_def:
+            lt.addLast(lista_tecnicas_def,tecnica)
+            total_tecnicas=+1
+    mayor=0
+    for tecnica_def in lt.iterator(lista_tecnicas_def):
+        for tecnica in lt.iterator(lista_tecnicas):
+            num_tecnica=0
+            if tecnica == tecnica_def:
+                num_tecnica +=1
+        if num_tecnica>mayor:
+            mayor=num_tecnica
+            mas_utilizada=tecnica
+    for id_obra in lt.iterator(lista_obras):
+        obra=mp.get(obras, id_obra)["value"]
+        if artista in obra["AuthorsNames"] and obra["Medium"]==mas_utilizada:
+            dic_obra={"Titulo": obra["Titulo"], "Fecha": obra["Fecha"], "Medio": obra["Medio"], "Dimensiones": obra["Dimensiones"]}
+            lt.addLast(obras_tecnica, dic_obra)
+    stop_time = time.process_time()
+    tiempo_req = (stop_time - start_time)*1000
+    return (total_obras, total_tecnicas, mas_utilizada, tiempo_req, obras_tecnica)
 
 #DANIELA - listo
 def req_4(catalog):
@@ -466,6 +516,44 @@ def req_5(catalog, dep):
     return (total_obras, costo_tot, peso_tot, lista_transp_def, tiempo_req, obras_costos_def)
 
 #BONO - falta
+def bono (catalog, año_in, año_fin, n):
+    start_time = time.process_time()
+    artist_date=catalog["artists_date"]
+    años=mp.keySet(artist_date)
+    artistas=lt.newList(datastructure="ARRAY_LIST")
+    for año in lt.iterator(años):
+        if int(año) >= int(año_in) and int(año) <= int(año_fin):
+            lista_artistas=mp.get(artist_date, año)["value"]
+            for artista in lt.iterator(lista_artistas):
+                lt.addLast(artistas, artista)
+    lista=lt.newList(datastructure="ARRAY_LIST")
+    lista_id_artistas=mp.keySet(catalog["artists"])
+    lista_obras=mp.keySet(catalog["artworks"])
+    for id_artista in lt.iterator(lista_id_artistas):
+        info_artista=mp.get(catalog["artists"], id_artista)["value"]
+        nombre=info_artista["DisplayName"]
+        (total_obras, total_tecnicas, mas_utilizada, tiempo_req, obras_tecnica)=req_3(catalog, nombre)
+        obras_def = lt.newList(datastructure="ARRAYLIST")
+        for pos in range(1, 6):
+            element = lt.getElement(obras_tecnica, pos)
+            lt.addLast(obras_def, element)
+        dic_artista={"Nombre": info_artista["DisplayName"], "Fecha de Nacimiento": info_artista["BeginDate"], "Genero": info_artista["Gender"], "Total Obras": total_obras, "Total Tecnicas": total_tecnicas, "Tecnica mas Utilizada":mas_utilizada, "Primeras 5 Obras": obras_def}
+        lt.addLast(lista, dic_artista)
+    ms.sort(lista, compareNumeroTecnicas)
+    sa.sort(lista, compareNumeroObras)
+    lista_def = lt.newList(datastructure="ARRAYLIST")
+    for pos in range(1, n+1):
+        element = lt.getElement(lista, pos)
+        lt.addLast(lista_def, element)
+    stop_time = time.process_time()
+    tiempo_req = (stop_time - start_time)*1000
+    return (lista_def,tiempo_req)
+
+
+
+
+
+
 
 
 #LABORATORIOS

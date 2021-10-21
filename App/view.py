@@ -116,10 +116,10 @@ while True:
     elif int(inputs[0]) == 4:
         artista=input("Ingrese el nombre del artista de interés:  ")
         (total_obras, total_tecnicas, mas_utilizada, tiempo_req, lista_obras) = controller.req_3(catalog, artista)
-        print("\n"+ artista + " tiene un total de " + total_obras + " en el museo.")
-        print("Hay " + total_tecnicas + " tipos diferentes de medios/tecnicas en su colección.")
+        print("\n"+ artista + " tiene un total de " + str(total_obras) + " obras en el museo.")
+        print("Hay " + str(total_tecnicas) + " tipos diferentes de medios/tecnicas en su colección.")
         print("Su tecnica mas utilizada es " + mas_utilizada)
-        print("\nA continuación se muestran las obras en las que " + artista + "utilizó esta tecnica")
+        print("\nA continuación se muestran las obras en las que " + artista + " utilizó esta tecnica")
         for obra in lt.iterator(lista_obras):
             print(obra)
         print("\nEl tiempo de respuesta para este requerimiento fue: " + str(tiempo_req)+"\n")
@@ -148,7 +148,12 @@ while True:
         print("\nEl tiempo de respuesta para este requerimiento fue: " + str(tiempo_req)+"\n")
     
     elif int(inputs[0]) == 7:
-        #BONO
+        año_in=input("Ingrese el año inicial: ")
+        año_fin=input("Ingrese el año final: ")
+        n=input("Ingrese el numero de artistas que desea consultar: ")
+        (lista_def,tiempo_req) = controller.bono (catalog, año_in, año_fin, n)
+        for artista in lt.iterator(lista_def):
+            print(artista)
         print("\nEl tiempo de respuesta para este requerimiento fue: " + str(tiempo_req)+"\n")
 
     #LABORATORIOS
