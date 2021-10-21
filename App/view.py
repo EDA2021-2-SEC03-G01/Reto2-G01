@@ -115,12 +115,12 @@ while True:
 
     elif int(inputs[0]) == 4:
         artista=input("Ingrese el nombre del artista de interés:  ")
-        (total_obras, total_tecnicas, mas_utilizada, tiempo_req, lista_obras) = controller.req_3(catalog, artista)
+        (total_obras, total_tecnicas, mas_utilizada, tiempo_req, obras_tecnica, primeras_ultimas) = controller.req_3(catalog, artista)
         print("\n"+ artista + " tiene un total de " + str(total_obras) + " obras en el museo.")
         print("Hay " + str(total_tecnicas) + " tipos diferentes de medios/tecnicas en su colección.")
         print("Su tecnica mas utilizada es " + mas_utilizada)
         print("\nA continuación se muestran las obras en las que " + artista + " utilizó esta tecnica")
-        for obra in lt.iterator(lista_obras):
+        for obra in lt.iterator(primeras_ultimas):
             print(obra)
         print("\nEl tiempo de respuesta para este requerimiento fue: " + str(tiempo_req)+"\n")
 

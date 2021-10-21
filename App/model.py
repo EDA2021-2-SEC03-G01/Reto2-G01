@@ -347,18 +347,18 @@ def req_3(catalog, nom_artista):
     mas_utilizada = ""
     obras = catalog["artworks"]
     lista_obras = mp.keySet(obras)
+    lista_tecnicas=lt.newList(datastructure="ARRAYLIST")
     for id_obra in lt.iterator(lista_obras):
         obra=mp.get(obras, id_obra)["value"]
         for autor in lt.iterator(obra["AuthorsNames"]):
             if autor == artista:
-                total_obras=+1
-                lista_tecnicas=lt.newList(datastructure="ARRAYLIST")
+                total_obras += 1
                 lt.addLast(lista_tecnicas, obra["Medium"])
+    lista_tecnicas_def=lt.newList(datastructure="ARRAYLIST")
     for tecnica in lt.iterator(lista_tecnicas):
-        lista_tecnicas_def=lt.newList(datastructure="ARRAYLIST")
         if tecnica not in lista_tecnicas_def:
             lt.addLast(lista_tecnicas_def,tecnica)
-            total_tecnicas=+1
+            total_tecnicas += 1
     mayor=0
     for tecnica_def in lt.iterator(lista_tecnicas_def):
         for tecnica in lt.iterator(lista_tecnicas):
@@ -370,12 +370,13 @@ def req_3(catalog, nom_artista):
             mas_utilizada=tecnica
     for id_obra in lt.iterator(lista_obras):
         obra=mp.get(obras, id_obra)["value"]
-        if artista in obra["AuthorsNames"] and obra["Medium"]==mas_utilizada:
-            dic_obra={"Titulo": obra["Titulo"], "Fecha": obra["Fecha"], "Medio": obra["Medio"], "Dimensiones": obra["Dimensiones"]}
+        if artista in obra["AuthorsNames"]["elements"] and obra["Medium"]==mas_utilizada:
+            dic_obra={"Titulo": obra["Title"], "Fecha": obra["Date"], "Medio": obra["Medium"], "Dimensiones": obra["Dimensions"]}
             lt.addLast(obras_tecnica, dic_obra)
+    primeras_ultimas = f_primeros_ultimos(obras_tecnica, 3)
     stop_time = time.process_time()
     tiempo_req = (stop_time - start_time)*1000
-    return (total_obras, total_tecnicas, mas_utilizada, tiempo_req, obras_tecnica)
+    return (total_obras, total_tecnicas, mas_utilizada, tiempo_req, obras_tecnica, primeras_ultimas)
 
 #DANIELA - listo
 def req_4(catalog):
@@ -532,7 +533,7 @@ def bono (catalog, año_in, año_fin, n):
     for id_artista in lt.iterator(lista_id_artistas):
         info_artista=mp.get(catalog["artists"], id_artista)["value"]
         nombre=info_artista["DisplayName"]
-        (total_obras, total_tecnicas, mas_utilizada, tiempo_req, obras_tecnica)=req_3(catalog, nombre)
+        (total_obras, total_tecnicas, mas_utilizada, tiempo_req, obras_tecnica, primeras_ultimas)=req_3(catalog, nombre)
         obras_def = lt.newList(datastructure="ARRAYLIST")
         for pos in range(1, 6):
             element = lt.getElement(obras_tecnica, pos)

@@ -41,13 +41,13 @@ def loadData(catalog):
     loadArtworks(catalog)
 
 def loadArtists(catalog):
-    artistsfile = cf.data_dir + 'MoMA/Artists-utf8-small.csv'
+    artistsfile = cf.data_dir + 'MoMA/Artists-utf8-large.csv'
     input_file = csv.DictReader(open(artistsfile, encoding='utf-8'))
     for artist in input_file:
         model.addArtist(catalog, artist)
 
 def loadArtworks(catalog):
-    artworksfile = cf.data_dir + 'MoMA/Artworks-utf8-small.csv'
+    artworksfile = cf.data_dir + 'MoMA/Artworks-utf8-large.csv'
     input_file = csv.DictReader(open(artworksfile, encoding='utf-8'))
     for artwork in input_file:
         model.addArtworks(catalog, artwork)
@@ -72,8 +72,8 @@ def req_2(catalog, fecha_in, fecha_fin):
     return (total, purchase, tiempo_req, lista)
 
 def req_3(catalog, artista):
-    (total_obras, total_tecnicas, mas_utilizada, tiempo_req, lista_obras)=model.req_3(catalog, artista)
-    return (total_obras, total_tecnicas, mas_utilizada, tiempo_req, lista_obras)
+    (total_obras, total_tecnicas, mas_utilizada, tiempo_req, obras_tecnica, primeras_ultimas)=model.req_3(catalog, artista)
+    return (total_obras, total_tecnicas, mas_utilizada, tiempo_req, obras_tecnica, primeras_ultimas)
 
 def req_4(catalog):
     (sorted_dict, primeros_ultimos, nac_mas, tiempo_req, n_obras_nac_mas) = model.req_4(catalog)
